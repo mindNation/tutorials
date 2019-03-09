@@ -44,6 +44,36 @@ public class ProductRepositoryIntegrationTest {
     }
 
     @Test
+    public void testSorting() {
+       Pageable sortedByName = PageRequest.of(0, 3, Sort.by("name"));
+       Pageable sortedByPrice = PageRequest.of(0, 3, Sort.by("price").descending());
+       Pageable sortedByPriceDescNameAsc = PageRequest.of(0, 3, Sort.by("price").descending().and(Sort.by("name").ascending()));
+
+       Page<Product> resultByName = productRepository.findAll(sortedByName);
+       Page<Product> resultByPrice = productRepository.findAll(sortedByPrice);
+       Page<Product> resultByPriceDescNameAsc = productRepository.findAll(sortedByPriceDescNameAsc);
+
+       assertThat(resultByName.getContent(), hasSize(3));
+       assertTrue(resultByName.stream()
+               .map(Product::getId)
+               .allMatch(id -> Arrays.asList(1001, 1005, 1002)
+                       .contains(id)));
+
+       assertThat(resultByPrice.getContent(), hasSize(3));
+       assertTrue(resultByPrice.stream()
+               .map(Product::getName)
+               .allMatch(name -> Arrays.asList("Shirt", "Jeans", "Book")
+                       .contains(name)));
+
+        assertThat(resultByPriceDescNameAsc.getContent(), hasSize(3));
+        assertTrue(resultByPriceDescNameAsc.stream()
+                .map(Product::getName)
+                .anyMatch(name -> Arrays.asList("Shirt").contains(name)));
+
+
+    }
+
+    @Test
     public void whenRequestingFirstPageOfSizeTwo_ThenReturnFirstPage() {
         Pageable pageRequest = PageRequest.of(0, 2);
 
